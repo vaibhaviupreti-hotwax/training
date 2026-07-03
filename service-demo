@@ -1,0 +1,114 @@
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+    # A1Q01NewCustomersV3 service for assignment Q1
+    <service verb="get" noun="A1Q01NewCustomersV3">
+        <in-parameters>
+            <parameter name="partyId"/>
+            <parameter name="firstName"/>
+            <parameter name="lastName"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="entityValueList" type="List"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="co.hotwax.upreti.A1Q01NewCustomers" list="entityValueList">
+                <econdition field-name="partyId" ignore-if-empty="true"/>
+                <econdition field-name="firstName" operator="like" value="%${firstName}%" ignore-if-empty="true"/>
+                <econdition field-name="lastName" operator="like" value="%${lastName}%" ignore-if-empty="true"/>
+            </entity-find>
+        </actions>
+    </service>
+
+    # A1Q01NewCustomersV3 service with script - needs to be checked - generated one
+      <!--    query 1 - A1Q01NewCustomers -->
+    <service verb="get" noun="A1Q01NewCustomers">
+        <implements service="TrainingServices.test#SqlAssignment"/>
+        <actions>
+            <script><![CDATA[
+                import org.moqui.impl.entity.EntityFindBase
+                import org.moqui.impl.entity.EntityDefinition
+                import org.moqui.impl.entity.condition.EntityConditionImplBase
+                import org.moqui.impl.entity.FieldInfo
+                import org.moqui.impl.entity.EntityFindBuilder
+
+                def activeProducts = ec.entity.find("co.hotwax.upreti.A1Q01NewCustomers")
+                boolean renderOnly = true
+
+                if(renderOnly) {
+                    EntityFindBase efb = (EntityFindBase) activeProducts
+                    EntityDefinition ed = efb.getEntityDef()
+                    EntityConditionImplBase whereCondition = (EntityConditionImplBase) efb.getWhereEntityConditionInternal(ed)
+                    List<String> selectFields = efb.fieldsToSelect
+
+                    def fieldInfoList = []
+                    if (selectFields) {
+                        selectFields.each { fname ->
+                            FieldInfo fi = ed.getFieldInfo(fname)
+                            if (fi) fieldInfoList << fi
+                        }
+                    } else {
+                        fieldInfoList.addAll(ed.entityInfo.allFieldInfoArray.findAll { it != null })
+                    }
+
+                    FieldInfo[] fieldInfoArray = fieldInfoList.toArray(new FieldInfo[0])
+                    EntityFindBuilder efBuilder = new EntityFindBuilder(ed,efb,whereCondition,fieldInfoArray)
+
+                    efBuilder.makeSqlSelectFields(fieldInfoArray,null,"true" == efBuilder.efi.getDatabaseNode(ed.groupName)?.attribute("add-unique-as"))
+                    efBuilder.makeSqlFromClause()
+                    efBuilder.makeWhereClause()
+                    efBuilder.makeGroupByClause()
+                    
+                    EntityConditionImplBase havingCondition = (EntityConditionImplBase) efb.havingEntityCondition
+                    if (havingCondition) {
+                        efBuilder.makeHavingClause(havingCondition)
+                    }
+
+                    List<String> orderBy = efb.orderByFields?:[]
+                    boolean hasLimit = (efb.limit != null || efb.offset != null)
+                    efBuilder.makeOrderByClause(orderBy, hasLimit)
+                    if(hasLimit) efBuilder.addLimitOffset(efb.limit, efb.offset)
+
+                    String sqlText = efBuilder.sqlTopLevel.toString()
+
+                    List paramValues = efBuilder.parameters.collect { p ->
+                        p.getValue()
+                    }
+
+                    ec.logger.info("=== A1Q01NewCustomers Rendered SQL (BEFORE execution) ===\n${sqlText}")
+                    ec.logger.info("=== A1Q01NewCustomers Parameters: ${paramValues}")
+                    
+                    // We must return an entityValueList as expected by the interface
+                    entityValueList = [[renderedSql: sqlText, parameters: paramValues]]
+                } else {
+                    entityValueList = activeProducts.list()
+                }
+            ]]></script>
+        </actions>
+    </service>
+
+    # test-reference-service
+      <service verb="find" noun="PartyNameAndRoleDetail">
+        <in-parameters>
+            <parameter name="partyId"/>
+            <parameter name="roleTypeId"/>
+            <parameter name="keyword"/>
+            <parameter name="pageSize" type="Integer" default-value="20"/>
+            <parameter name="pageIndex" type="Integer" default-value="0"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="parties"/>
+            <parameter name="count"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="co.hotwax.party.party.PartyNameAndRoleDetail" list="parties" limit="pageSize" offset="pageSize * pageIndex">
+                <econdition field-name="partyId" ignore-if-empty="true"/>
+                <econdition field-name="roleTypeId" ignore-if-empty="true"/>
+                <econditions combine="or">
+                    <econdition field-name="firstName" operator="like" value="${keyword}%" ignore="!keyword"/>
+                    <econdition field-name="lastName" operator="like" value="${keyword}%" ignore="!keyword"/>
+                    <econdition field-name="groupName" operator="like" value="${keyword}%" ignore="!keyword"/>
+                </econditions>
+            </entity-find>
+            <set field="count" from="parties_xafind.count()"/>
+        </actions>
+    </service>
+</services>
