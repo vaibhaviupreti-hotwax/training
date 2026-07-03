@@ -1,5 +1,5 @@
 <services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
-    # A1Q01NewCustomersV3 service for assignment Q1
+<!--  A1Q01NewCustomersV3 service for assignment Q1   -->
     <service verb="get" noun="A1Q01NewCustomersV3">
         <in-parameters>
             <parameter name="partyId"/>
@@ -18,7 +18,7 @@
         </actions>
     </service>
 
-    # A1Q01NewCustomersV3 service with script - needs to be checked - generated one
+<!--  A1Q01NewCustomersV3 service with script - needs to be checked - generated one   -->
       <!--    query 1 - A1Q01NewCustomers -->
     <service verb="get" noun="A1Q01NewCustomers">
         <implements service="TrainingServices.test#SqlAssignment"/>
