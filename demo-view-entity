@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+
+<!--    A1Q01NewCustomers view entity   -->
+  <view-entity entity-name="A1Q01NewCustomers" package="co.hotwax.upreti">
+        <member-entity entity-alias="P" entity-name="org.apache.ofbiz.party.party.Party" />
+        <member-entity entity-alias="PER" entity-name="org.apache.ofbiz.party.party.Person" join-from-alias="P">
+            <key-map field-name="partyId"/>
+        </member-entity>
+        <member-entity entity-alias="PCMP" entity-name="org.apache.ofbiz.party.contact.PartyContactMechPurpose" join-from-alias="PER" join-optional="true">
+            <key-map field-name="partyId"/>
+            <entity-condition>
+                <date-filter/>
+                <econdition entity-alias="PCMP" field-name="contactMechPurposeTypeId" value="PRIMARY_EMAIL"/>
+            </entity-condition>
+        </member-entity>
+        <member-entity entity-alias="ECM" entity-name="org.apache.ofbiz.party.contact.ContactMech" join-from-alias="PCMP" join-optional="true">
+            <key-map field-name="contactMechId"/>
+        </member-entity>
+        <member-entity entity-alias="TPCM" entity-name="org.apache.ofbiz.party.contact.PartyContactMechPurpose" join-from-alias="PCMP" join-optional="true">
+            <key-map field-name="contactMechId"/>
+            <entity-condition>
+                <date-filter/>
+                <econdition field-name="contactMechPurposeTypeId" value="PRIMARY_PHONE"/>
+            </entity-condition>
+        </member-entity>
+        <member-entity entity-alias="TN" entity-name="org.apache.ofbiz.party.contact.TelecomNumber" join-from-alias="TPCM" join-optional="true">
+            <key-map field-name="contactMechId"/>
+        </member-entity>
+        <alias name="partyId" entity-alias="P"/>
+        <alias name="firstName" entity-alias="PER"/>
+        <alias name="lastName" entity-alias="PER"/>
+        <alias name="infoString" entity-alias="ECM"/>
+        <alias name="contactNumber" type="text-medium">
+            <complex-alias function="CONCAT" >
+                <complex-alias-field entity-alias="TN" field="countryCode"/>
+                <complex-alias expression="'-'"/>
+                <complex-alias-field entity-alias="TN" field="areaCode"/>
+                <complex-alias expression="'-'"/>
+                <complex-alias-field entity-alias="TN" field="contactNumber"/>
+            </complex-alias>
+        </alias>
+    </view-entity>
+<!--    A1Q1 - end of view entity  -->
+</entities>
