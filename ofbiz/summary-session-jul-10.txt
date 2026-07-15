@@ -1,0 +1,99 @@
+Early conversion
+Do not use SOPs—use debug. logwarning (debug class provides direct capability where and what is happening) - read: debug.properties file - usage: which msg to print/not to on console. Many info/warning messages are generated. Ofbiz.log maintains 10 file maintain and for old logs, what do we do?
+Reader-specific command on production—not cleanAll and loadAll every time. 
+Ext used to create customer data, a custom reader for testing, and flag it too to indicate it is for testing.
+Why read a code file? OrderServices.Java. To write maintainable code after it goes to the production environment, to check patterns and symmetry in the overall code structure. 
+Ofbiz has events and services (map obj as i/p and o/p)
+How the following exist and are utilized in FW: debug statements, err, utility and helper classes, and method calls from another method.
+
+
+Topic: Request/Control flow
+Screen widget
+plugins/example component? Latest codebase is pushed here for reference
+Directory structure - component specific
+Ofbiz starts—components loaded
+FW-componentLoad.xml: base-entity->security
+FW, Theme, applications, plugins(custom comp loaded in the end, supporting comp)
+Example component
+Class compiled -> build folder -> to jar 
+Default Tomcat server? 9 or 10
+Config folder? UI-related file
+Ui label file: Internationalization and localization support needed to expand - labels in native language to increase the adoption of the application called UI labels according to browser language. Html elem labels are here. Ek label ka extension hota hai .properties, ex: general.properties. These are to save any key value used in the software. Ex: ofbiz user - send mail configuration, general.proprties (SMTP settings) - system able to generate mails.
+Other files in this: Entityengine.xml file
+Sample data - data/ , ofbizComponent.xml is responsible for telling which type of data is defined: seed etc
+DTDs - doc type definition. Xsd files are there.
+Entitydef
+Data definition file is there where data types are mapped - fw>entity>build type>every db specific file is there, derby: fieldtypederby.xml [id is mapped/converted to varchar 20]
+Java type? Java method invoked through some xml service, param passed, java me kis type se defined hain
+ <service><attribute… type - - not specified - - java type is string (automatic)
+Minilang - deprecatd - skip
+Service def
+Src - groovy and java files src code
+Webapp? Jsp and servlet
+webInf -> 2 files -> controller.xml, web.xml(deployment descriptor- sabse pehle control yaha aata hai)
+controlServlet.java (code read karna aana chahiye), requestHandler.java
+Request hit-> both above comes to console->trace on console-the flow to page rendering.
+Webpage.. formWidget(screen, form, menus - xml - code dependency is on xsd file - tag and child tag and tags coming under child tag - - action tag -data prepare karte hain logical understanding) and FTL/which is a jsp replacement.
+Build.xml - component related
+OfbizComponent.xml? Resource need to load - component specific, like: loads- entity def, data , service/entity def, app mount point. Ex: Example comp  ka mount point
+24.07 download
+Ofbiz - build - component load on console
+Entityengine.xml and dependency.gradle - db driver references.gradle reads depcy files and keep jars on classpath
+
+
+Topic: Request/Control flow
+8443…….example/control/main
+example/control/* - control servlet - req on controller.xml (req/.. mapping)
+port/mount(uniq)/
+/main=>Web.xml par control=> flow below=>controler.xml
+Web.xml removed, servlet and mapping replaced by annotations
+View, <security auth-true(login window redirected - login mech- LoginEvents.java, LoginWorker.java) and https(if not redirected).
+User def string/success type is view and value is main.
+<view-mapping>: what you want to display to user : /example/widget../commonScreens../ - tells how page is rendered
+Main screen <section><action> - to prepare data, simple data- setting, var fetch, certain tags are there in <action>, ex: <set>: kisi bbhi type ki value ko set karo, value assigned to a variable, if you pass string/map/list - string/map/object type.
+Simple data prepare for form rendering, complex data prep - in groovy file
+Groovy - use in CI/CD. It is DSL: domain specific lang, scripting language(inder, compile/no explicit server restart/looselytype)
+Now control- <include-screen> => exampleScreens.xml => find-example screen=>
+<decorator screen - dushyant
+2 implicit map obj - are available - context map and parameter map, implicit-avail by FW, to read from these:
+context map(no need to write context.get (XML me option hai .get() ki need nahi hai) to read key - var set in screen context/definition) and parameter map. In java - Map ka object and .get().
+Parameter(map ka object) - $mainDecoratorLocation. (Refer to the tutorial app.) 
+.. web.xml - context param variables(global var- read from parameter map) - - - here you see above variable
+Collection api acche se padho (to visualize above).
+Events.java form var/elem - onSubmit - controller on events.java (read with request ka object, request.getParameter)
+Out param - are available in parameter map.
+Now control => location mil gayi hai - commonScreens.xml - screen name - mainDecorator (header/footer/body content is generalized here).
+…
+mainDecorator - action tag - data prep
+applicationDecorator - common/ext/widget/commonScreens.xml
+One screen to another screen - <action> data prep = > globalDecorator screen //how to check control flow? Check In Common controller in
+2 screen -globalAction(no location means exists here), globalDecorator 
+Decorator means screen exists
+minimalAction and globalAction
+initTheme.groovy: theme entry here – how page layout look
+.. Certain params set, commonDecorator, initLocale.complete, isECommerce etc
+Groovy code syntax: common screen var set. GlobalAction variable-if not null?...:...
+Common decorator location and default value.
+Global actions - commonScreens.xml file location - common theme/widget/globalAction…
+<decorator-section-include> render main body
+Body and pre body 
+Container in xml is <div>
+“body” section ko laakr rakhdeta hai
+Assignment: navigate kiya hai usko dekhna hai, screen kese render hui, body section, apps menu rendering, include menu, appl menu,appl menu location. Find it in: example/..decorator
+
+Screen decorator pattern is:
+Common screens=>Common ext, common etc => theme par
+Right click–view page src
+In the end - result….
+Search form, search result form is printed on the browser
+How sir did this ??? Webtools par: Context map ke obj ko screen par print kara diya
+Next: 11:00 AM
+Screen widget
+form widget
+Groovy
+FTL
+services 
+events
+
+Q: How do control flow and events work?
+Ofbiz FW and plugins folder ka fork-download and deploy.
