@@ -1,0 +1,112 @@
+ 
+OFBiz—HTTP servlet req/res obj, session obj, cookies, dynamics
+What you have done in OFBiz
+Web tools, service definitions, db, dev assignments, Entity-XML
+Delegator class delegator.java, obj methods (find-one, find)—db interaction, prep statement dispatcher, parameter maps, async-sync, and service passes maps. 
+Wrapper API—no direct hardcoded SQL
+Collection FW map interface, delegator.find...one(param-entity name+map obj(WHERE))---entity single record [generic value]. Pass PK, composite key.
+find() returns a “list of generic values"; pass: entity name, condition (WHERE, having PK, non-PK). Operator selection in condition (there is an option—check method and method api)
+Read the JavaDocs and check method signatures in the IDE. Ex: delegator method.
+Entity definition in OFBiz: entity model file + define relationship between tables.
+Trunk and release (stable branch, e.g., 24.09) branch diff?
+ OFBiz: Data agnostic, MySQL setup?
+Minimum requirements to run FW: JDK version, Gradle dependency, Gradle tasks
+Gradle commands
+./gradle build—jar/war files?
+path (OS terms-var defined) vs classpath (all supporting libs jars are here, used when you run build command/executable programs/installer works acc to OS-/bin/exec java file [linux-javac.sh, win-java.])
+WAR: web archive—ex: Tomcat web server (placed here and accessed); app deploy—keep WAR (zipped app file), deploy means the app can be accessed via URL (localhost/port/…); web server app unique mount point—recursively many functionalities using that mount point.
+Web server concept: Instead of the WAR file concept, the default web server is Apache Tomcat (compiles Java class-keep in the build folder, ofbiz.jar in the end)
+Gradlew ofbiz (start the OFBiz web server, where many apps are already mounted and accessed through web tools on the web, check mount points of those apps), build, cleanAll (remove old build cache, temp files, etc.) loadAll. These are all Gradle tasks written in the build.gradle , automation operations performed by cleanAll, 
+automation (no need to go to li-make.class)
+Derby DB files are in "runtime/data." 
+cleanAll => deletes JAR files with .class files, deletes Derby DB files, and removes runtime/log/temp cached files.
+Directory structure: runtime/* - log files (Log4J-Apache s/w foundation proj.), study categorization of log files?
+Freemarker + groovy + log4j = OFBiz is made
+
+
+Use of log files? Everything you see on the console will be logged into these files—in 99% of cases, you get a stepwise flow
+What is a stacktrace? Help in finding errors and exact lines.
+loadAll? Tasks: entity creation, data (categories) load into them,  
+Check files: debug.properties, debug.java, debug.config—logs are categorized here
+Log errors, info, and warnings using the Log4j FW.
+Use the Debug class and methods (SOPln acv version—logs are categorized: debug.log) Error-err in catch block, debug.log Warning—common for all FW, not just OFBiz, need for this? ) rather than SOPln during development.
+Error-related messages in the error log file do not happen in the production environment. How are OFBiz logs generated using log4j2.xml? New file after the size of a file is exceeded: Do 10 files or 100 files need to be in the production environment?
+Component: logical grouping, comp can have multiple web apps.
+Fw level folder—applications and plugins
+CRUD work on entities: Tutorial app. 
+Screens: screen widget, form widget, FTL, submit form->call services?, and events? Services vs. events (need?): Event (returns string after HTTP req/resp obj passed) removed in Moqui?! Events are for data validation(server side validation-req shoot after form submit->goes to server-> all info: radio, checkbox, read from req obj-http servlet interface req object—having methods). Req. Get params, coming back to events—code sent->validation is done-> service (BL), returned from event handler without reaching till service engine.
+Services are session layers. means? The browser manages sessions (has duration-decided per application-managed by the Tomcat server) with cookies (the session object is there)
+Directories: FW(entity engine code, service engine code, another FW/lib integration code), application (default OFBiz business apps—order, catalog, web tools, marketing, party—DM-related components/business components). Custom solution with components, 
+MVP min viable product, reusing existing things available, fw level comp solutions exist… any business model can be catered to—IRCTC, Myntra, etc. [B2C/B2B E-Commerce, Multi-Vendor Marketplaces, 3PL Warehousing, Subscription Billing, and Manufacturing (MRP)],
+Other folders: plugins, themes?
+loadAll: load comp, sequence. Check Db cn-default (derby-db-related files-runtime/), entities, created, and DB load data readers/custom data readers—let's say, staging-specific/production. [seq: seed init, seed, demo, ext, staging, prod.]
+Seed vs seed initial—major difference—min data loaded to the system (ex: type entities); seed init- loaded once (password-default done while setup—what if seed init done, when do we need to reload these? pass change)
+Job sandbox entity, temporal expression—loaded once in the system.
+Reconciliation once: set the next date automatically. 
+Password changed—seed init will reset the password again as per setup
+Prod par loadAll nahi chalate—data reader-specific cmds are there: seed init.
+Which command to run when something changes in seed data?
+Data format loaded in OFBiz—XML converted to SQL—make an insert statement—and loaded to DB tables.
+More files to read: generic dispatcher
+Helper and utility classes in OFBiz—"party helper.java," “recorderread helper.java," “utility files..."—observe patterns/usage of classes—ex: check debug.java methods in it
+Todo: ofbiz demo comp in GitHub, daily code push
+Read: Entity engine guide, service engine guide. Docs
+How does app dev fw helps in building applications?
+
+Next (Friday, July 10)
+Control flow: req journey, controller.xml, screen form widget, FTL, and Groovy files
+Upcoming days: 
+Events and services
+
+
+LEARN OFBIZ
+
+Core structure
+Entity engine - orm - xml for tables - query without sql
+Service engine - xml based BL - java/groovy
+Widget - UI(screen, form, menu) - dy render HTML/FTL
+Controller.xml - web-req->views->services 
+Jdk 17, clean load data, start server
+-> https://localhost:8443/partymgr
+
+JAR /WAR(java arch/web arch) - bundles apps meant to run on desktop/web
+JAR-java c,metadata+resources/WAR
+JAR-runs via cmd line/WAR-need servlet container(~tomcat)
+JAR-META-INF folder/WAR-WEB-INF folder
+
+
+$PATH returns dir names separated by colon(:)  
+ echo $PATH
+/home/vaibhaviupreti/.sdkman/candidates/groovy/current/bin
+:
+/usr/lib/jvm/java-21-openjdk-amd64/bin
+:
+/home/vaibhaviupreti/.nvm/versions/node/v20.20.2/bin
+:
+/usr/local/sbin
+:
+/usr/local/bin
+:
+/usr/sbin
+:
+/usr/bin
+:
+/sbin
+:
+/bin
+:
+/usr/games
+:
+/usr/local/games
+:
+/snap/bin
+:
+/snap/bin
+
+
+
+Command - ./gradlew cleanAll [followed by ./gradlew cleanAll loadAll(recreates-db/data-load) ofbiz-compiles+start-server]
+wipes/Deletes - generated build files, compiled code, and local runtime databases
+When to do it? Db reset—a fresh start, facing build errors
+
+framework/base/config/log4j2.xml
