@@ -20,9 +20,22 @@
 
 ### for new run
 - ./gradlew cleanAll loadAll (This builds the .jar files and seeds the database. Once it finishes, you just run ./gradlew ofbiz to start the server.)
+- loadAll runs build command behind the scenes.
+
+### before loadAll check
+- git status
+- db connection and required things for it
+- ensure you didnot removed any property, security related things, etc.
+- Currently open JDK 21 - is okay, but check compatability always. 
 
 ### for the second time - skip cleanAll loadAll, what you run next entirely depends on what kind of files you are editing.
 - If you changed .java code, you need to recompile: ./gradlew build
 - You changed UI or configs(XML, Groovy, FTL, HTML), no need to run gradle commands, OFBiz dynamically reloads these files.
 - If you add complete new db Tables, just restart OFBiz.
 - If you accidently deleted important data, just run ./gradlew loadAll
+
+**When to run build:**
+`.java`, `build.gradle`, `settings.gradle`, `gradle.properties`
+
+**When NOT to run build:**
+`.xml`, `.ftl`, `.groovy`, `.html`, `.css`, `.js`, `.properties`
