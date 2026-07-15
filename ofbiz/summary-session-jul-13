@@ -1,0 +1,106 @@
+PREVIOUSLY DISCUSSED… and continue
+Params and context
+Parameter map se KONSE params kya read kar sakte hain?
+Web.xml, which params
+
+Screen widget control flow—chalaakar dekhna hai
+Headless framework/app? Frontend in any prog lang..
+<set> jo type pass karoge uska type wahi ho jayega, for complexity use groovy
+Implicit parameters in groovy are provided, available/implicit object: request, response, parameters, context, login, and locale, delegator and dispatcher too (use these for processing ), object.get()- 
+get() is not needed, semicolon not needed
+Context map usage
+Beanshell then groovy adoption doc
+< property-map> Is it related to ui label? 
+<property key>..<value>
+Exampleuilabels and uilabelmap(saved here as a key:value), uilabelmap is available
+<set field “layoutSettings”...>
+From-field(dynamic variable is fetched) and value attr
+<entity-one> ->where clause implicit(with pk in <set>) and explicit <field-map
+<entity-and> –returns list object, operator
+<entity-condition> - more flexible ..in java? EntityQuery.use(calls find/findOne internally) in java
+Delegator obj used when you want to perform CRUD via entity
+—---------------screen widget ends here—---------------------------------------
+Todo: 4-5 screen definition
+
+Form widget
+Control flow-controller.xml - <view-map> | controller in controller
+commonController.xml, handlersController.xml(actual handler impl kese kiya hai - html page kese genrate hua?) - MacroScreenViewHandler (read and write in notebook how much you understood) 
+Service ke liye event handler ka code dekhna hai, serviceEventHandler.java
+Form types : single, list, multi
+<auto-field-service> <auto-field-entity>
+Screen button - create example - traced it…
+<event type..>
+After submit button send flow to java event or service
+Read tags and attributes: Line 27- example & related services - <service-name”createExample” 
+<entity-auto> - auto crud
+<!-- AddressMatchMap services -->
+    Service definition
+<service name="createAddressMatchMap" engine="simple"... can be java/grrovy default-entity-name="AddressMatchMap" auth="true"
+List form is also called as grid.
+OFBizDemoEvents.java
+
+How java groovy html xml all works in ofbiz together?
+
+Sync vs async
+Dispatcher obj is used to call a service synchronously/asynchronously. 
+email(async), sms(sync-immediate). dispatcher.runSync()
+utilMisc class? .toMap() obj holds at max 6 params, if more needed—make map object
+Event calls service, service calls service, xxx calls service
+
+…
+Server side validation on events, returned to user rather than sending it to service engine,
+All events have return type “string” - pass success error or custom string, next to be done in controller with this string
+
+createOfbizDemoByJavaService
+
+When to use java/groovy - how to decide
+Groovy comparatively is lightweight, easy to understand code
+Groovy if modifications - no need to restart the server
+Auto complete in groovy - interpreter and compiler should be set properly
+
+Events vs service
+Session object - services are session less, you need to use events for this
+Return type: Both has mostly static meth services takes map obj returns map obj, events return string
+Definition - events me nahi hoti params read and do validations and called service
+async/sync - events are called immediately, no concept of async like service
+Impl possi entity-auto, events  can be written in java, groovy etc
+Scheduling is done through services only, events cannot do it
+—--------see 2 -3 patterns of : events,services, form widget/screen widget is completed from sir end —--------------------
+<service override tag
+Check more: create(), remove()
+Delegator and dispatcher methods
+setNextSequenceId() - auto inc, pk max count ++ and set
+createOfbizDemo
+setNonPK() method alternative?  Set to generic value object
+
+Personal to check
+Reading values, set in generic obj, casting 
+utilMisc.java
+Groovy DSL(domain specific lang) support with certain characteristics - by jacopo
+
+Dispatch context context map
+
+ProductEvents.java and exception handling here - make notes for this
+
+more..
+exception handling in events and services - how implemented?
+Debug.log, debug….
+Exception parent class: why is there a need? To provide opportunity to jvm to handle that exception
+
+Services file: OrderServices.java, read methods: debug class use, context se value read, error handling use, 
+Java events read multiple times
+Service event handler
+Macros code
+
+Free marker template use to create form in OFBiz
+Groovy implicit obj are available here too: req, resp, parmas, cont, session…
+No “for loop”: there is a “hash list”, iterate
+hash -include - for value assignment
+To call Java static methods - use hash assign
+Null checks, default value obj.
+?? , ! , default value operator
+Free marker built-ins
+
+Next: last revision session on OFBiz, qandA session
+Then moqui will start
+Todo: Ofbiz demo practice app
