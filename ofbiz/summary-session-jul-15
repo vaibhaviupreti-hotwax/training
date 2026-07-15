@@ -1,0 +1,55 @@
+Assignment: Perform find service **dekne milegi—entity-related search—check impl of this service - used @ many places
+Use of the entity auto engine in services
+Document - groovy - shared
+attr/auto attr/orverride
+PerformFind service 
+Simple data prep tags?
+Screen ke context map ka object save kiya, param map se direct bhi read kar sakte hain—request. getParameter
+In Java, we read these with the req object.
+How a service is called in Java—a dispatcher object to call a service sync/asynchronously.
+Delegator obj for entity
+Mode in params
+
+Database triggers
+One entity changes does changes in others, to perform another op’n on basis of it
+Sync calls disp…..runSync
+SECAS 
+
+Read triggers m make trigger 
+Order,helper, utility classes
+
+Worker class and - ofbiz/helper .. 
+Views saved in jvm? Not in dump, use of views in hotwax? Views are heavy. Proper index to pass via search in view, cursor
+Assignment - see views definition
+
+
+Questions
+Multithreading in ofbiz
+
+Map object why 2? In ofbiz: context map (in the screen's context—can be read directly),params(get, out, web.xml values ko get )
+
+Ofbiz indexing is handled at the database, table, index, etc
+How mysql manages index?
+Entity def mein index banana hai bata dete hain
+Make sure db healthy, all index working, and the InnoDB health check, index positioning/corrupted index, etc
+
+Sync /async mein thread block ho jaate hain?
+
+Cn pool and size: 
+Check file: serviceengine.xml
+
+How does a sync/async service work? Also, check deadlock situations, etc.
+Tx mgmt - Java: transactionUtil.java
+
+
+
+Open the Swagger part and explore 
+Ofbiz REST capability
+Check: Swagger of OFBiz REST APIs on localhost
+
+nowadays
+Headless APIs and in-out parameters, and data format told, security, auth2
+
+
+Moqui
+A quick tutorial should be done
