@@ -1,0 +1,239 @@
+<!-- With reference to PR: https://github.com/hotwax/oms/pull/720/ -->
+<!-- I have added the test cases that I ran to test proposed changes -->
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+
+    <service verb="test" noun="WebhookIdealPayload">
+        <out-parameters>
+            <parameter name="finalStatusId"/>
+        </out-parameters>
+        <actions>
+            <log level="info" message="Starting test#WebhookIdealPayload"/>
+            
+            <set field="doc" from="[
+                _type: 'WebhookShipmentStatus',
+                shipmentId: '10000',
+                orderId: '10001',
+                orderName: '#10001',
+                eventStatusId: 'SHIPMENT_SHIPPED',
+                eventDate: '2026-07-17 10:00:00.000',
+                storeName: 'HotWax',
+                salesChannelDesc: 'Shopify',
+                currencyUom: 'USD',
+                grandTotal: 115.00,
+                routeSegments: [ [ trackingCode: '1Z999999' ] ],
+                facilityAddress: [ [ originAddress1: '123 Warehouse St' ] ],
+                paymentPrefs: [
+                    [
+                        paymentMethodTypeId: 'CREDIT_CARD',
+                        paymentMethodDesc: 'Credit Card'
+                    ]
+                ],
+                adjustments: [
+                    [
+                        adjustmentTypeId: 'SHIPPING_CHARGES',
+                        adjustmentAmount: 15.00
+                    ]
+                ]
+            ]"/>
+
+            <!-- 
+                Setup mock WebhookConfig so dispatch#WebhookEvent doesn't exit early. 
+                If there are no subscribers in the DB, the service safely exits and doesn't generate a SystemMessage!
+            -->
+            <entity-make-value entity-name="co.hotwax.common.WebhookConfig" value-field="webhookConfig"/>
+            <set field="webhookConfig.webhookConfigId" value="TEST_WH_CONF_1"/>
+            <set field="webhookConfig.topicEnumId" value="SHIPMENT_SHIPPED"/>
+            <entity-create value-field="webhookConfig"/>
+
+            <!-- Capture message count before run (We look for WebhookNotification because dispatch#WebhookEvent creates this type, not ShopifyOrderSync) -->
+            <entity-find entity-name="moqui.service.message.SystemMessage" list="beforeSysMsgList">
+                <econdition field-name="systemMessageTypeId" value="WebhookNotification"/>
+            </entity-find>
+            <set field="beforeCount" from="beforeSysMsgList.size()"/>
+
+            <!-- Execute service -->
+            <service-call name="co.hotwax.webhook.WebhookServices.process#WebhookDataDocument" in-map="[doc: doc]"/>
+
+            <!-- Capture message count after run -->
+            <entity-find entity-name="moqui.service.message.SystemMessage" list="afterSysMsgList">
+                <econdition field-name="systemMessageTypeId" value="WebhookNotification"/>
+                <order-by field-name="-initDate"/>
+            </entity-find>
+            
+            <if condition="afterSysMsgList.size() &lt;= beforeCount">
+                <log level="error" message="No new SystemMessage found!"/>
+                <set field="finalStatusId" value="TEST_SCN_FAIL"/>
+                <return/>
+            </if>
+            
+            <!-- Verify payload -->
+            <set field="latestMessage" from="afterSysMsgList[0]"/>
+            <script><![CDATA[
+                def slurper = new groovy.json.JsonSlurper()
+                def payloadJson = slurper.parseText(latestMessage.messageText)
+                
+                ec.logger.info("Verifying payload: ${payloadJson}")
+
+                if (payloadJson.shopifyOrderName != '#10001') {
+                    ec.logger.error("Failed assertion: shopifyOrderName expected '#10001' but got '${payloadJson.shopifyOrderName}'")
+                    finalStatusId = "TEST_SCN_FAIL"
+                }
+                if (payloadJson.shippingCost != 15.00) {
+                    ec.logger.error("Failed assertion: shippingCost expected 15.00 but got '${payloadJson.shippingCost}'")
+                    finalStatusId = "TEST_SCN_FAIL"
+                }
+                if (payloadJson.paymentType != 'Credit Card') {
+                    ec.logger.error("Failed assertion: paymentType expected 'Credit Card' but got '${payloadJson.paymentType}'")
+                    finalStatusId = "TEST_SCN_FAIL"
+                }
+                if (payloadJson.currency != 'USD') {
+                    ec.logger.error("Failed assertion: currency expected 'USD' but got '${payloadJson.currency}'")
+                    finalStatusId = "TEST_SCN_FAIL"
+                }
+            ]]></script>
+            
+            <entity-delete value-field="webhookConfig"/>
+
+            <if condition="!finalStatusId">
+                <log level="info" message="test#WebhookIdealPayload PASSED!"/>
+                <set field="finalStatusId" value="TEST_SCN_PASS"/>
+            </if>
+        </actions>
+    </service>
+
+    <service verb="test" noun="WebhookDatabaseFallback">
+        <out-parameters>
+            <parameter name="finalStatusId"/>
+        </out-parameters>
+        <actions>
+            <log level="info" message="Starting test#WebhookDatabaseFallback"/>
+            
+            <!-- Setup mock records -->
+            <entity-make-value entity-name="org.apache.ofbiz.order.order.OrderHeader" value-field="orderHeader"/>
+            <set field="orderHeader.orderId" value="TEST_9999"/>
+            <set field="orderHeader.orderTypeId" value="SALES_ORDER"/>
+            <set field="orderHeader.currencyUom" value="EUR"/>
+            <entity-create value-field="orderHeader"/>
+
+            <entity-find entity-name="org.apache.ofbiz.accounting.payment.PaymentMethodType" list="pmtList" limit="1"/>
+            <entity-make-value entity-name="org.apache.ofbiz.order.order.OrderPaymentPreference" value-field="opp"/>
+            <set field="opp.orderPaymentPreferenceId" value="TEST_9999_OPP"/>
+            <set field="opp.orderId" value="TEST_9999"/>
+            <set field="opp.paymentMethodTypeId" from="pmtList ? pmtList[0].paymentMethodTypeId : 'CREDIT_CARD'"/>
+            <entity-create value-field="opp"/>
+
+            <entity-find entity-name="org.apache.ofbiz.order.order.OrderAdjustmentType" list="adjTypeList" limit="1"/>
+            <entity-make-value entity-name="org.apache.ofbiz.order.order.OrderAdjustment" value-field="adj"/>
+            <set field="adj.orderAdjustmentId" value="TEST_9999_ADJ"/>
+            <set field="adj.orderId" value="TEST_9999"/>
+            <set field="adj.orderAdjustmentTypeId" from="adjTypeList ? adjTypeList[0].orderAdjustmentTypeId : 'SHIPPING_CHARGES'"/>
+            <set field="adj.amount" value="25.00" type="BigDecimal"/>
+            <entity-create value-field="adj"/>
+
+            <!-- Setup doc payload missing fields -->
+            <set field="doc" from="[
+                _type: 'WebhookShipmentStatus',
+                shipmentId: '10000',
+                orderId: 'TEST_9999',
+                orderName: '#TEST_9999',
+                eventStatusId: 'SHIPMENT_SHIPPED',
+                eventDate: '2026-07-17 10:00:00.000',
+                storeName: 'HotWax',
+                salesChannelDesc: 'Shopify',
+                grandTotal: 125.00,
+                routeSegments: [ [ trackingCode: '1Z999999' ] ],
+                facilityAddress: [ [ originAddress1: '123 Warehouse St' ] ]
+            ]"/>
+
+            <!-- 
+                Setup mock WebhookConfig.
+                This is required because dispatch#WebhookEvent will exit without generating a SystemMessage if no subscribers exist.
+            -->
+            <entity-make-value entity-name="co.hotwax.common.WebhookConfig" value-field="webhookConfig"/>
+            <set field="webhookConfig.webhookConfigId" value="TEST_WH_CONF_2"/>
+            <set field="webhookConfig.topicEnumId" value="SHIPMENT_SHIPPED"/>
+            <entity-create value-field="webhookConfig"/>
+
+            <!-- Note: We must look for WebhookNotification because dispatch#WebhookEvent creates this specific type for all webhooks -->
+            <entity-find entity-name="moqui.service.message.SystemMessage" list="beforeSysMsgList">
+                <econdition field-name="systemMessageTypeId" value="WebhookNotification"/>
+            </entity-find>
+            <set field="beforeCount" from="beforeSysMsgList.size()"/>
+
+            <!-- Execute service -->
+            <service-call name="co.hotwax.webhook.WebhookServices.process#WebhookDataDocument" in-map="[doc: doc]"/>
+
+            <!-- Capture message count after run -->
+            <entity-find entity-name="moqui.service.message.SystemMessage" list="afterSysMsgList">
+                <econdition field-name="systemMessageTypeId" value="WebhookNotification"/>
+                <order-by field-name="-initDate"/>
+            </entity-find>
+            
+            <if condition="afterSysMsgList.size() &lt;= beforeCount">
+                <log level="error" message="No new SystemMessage found!"/>
+                <set field="finalStatusId" value="TEST_SCN_FAIL"/>
+            </if>
+            
+            <if condition="!finalStatusId">
+                <set field="latestMessage" from="afterSysMsgList[0]"/>
+                <script><![CDATA[
+                    def slurper = new groovy.json.JsonSlurper()
+                    def payloadJson = slurper.parseText(latestMessage.messageText)
+                    
+                    ec.logger.info("Verifying payload: ${payloadJson}")
+
+                    if (payloadJson.shippingCost != 25.00) {
+                        ec.logger.error("Failed assertion: shippingCost expected 25.00 but got '${payloadJson.shippingCost}'")
+                        finalStatusId = "TEST_SCN_FAIL"
+                    }
+                    if (payloadJson.currency != 'EUR') {
+                        ec.logger.error("Failed assertion: currency expected 'EUR' but got '${payloadJson.currency}'")
+                        finalStatusId = "TEST_SCN_FAIL"
+                    }
+                ]]></script>
+            </if>
+            
+            <!-- Cleanup mock records -->
+            <entity-delete value-field="webhookConfig"/>
+            <entity-delete value-field="adj"/>
+            <entity-delete value-field="opp"/>
+            <entity-delete value-field="orderHeader"/>
+
+            <if condition="!finalStatusId">
+                <log level="info" message="test#WebhookDatabaseFallback PASSED!"/>
+                <set field="finalStatusId" value="TEST_SCN_PASS"/>
+            </if>
+        </actions>
+    </service>
+
+    <service verb="test" noun="WebhookNpeSafety">
+        <out-parameters>
+            <parameter name="finalStatusId"/>
+        </out-parameters>
+        <actions>
+            <log level="info" message="Starting test#WebhookNpeSafety"/>
+            
+            <set field="doc" from="[
+                _type: 'WebhookShipmentStatus',
+                shipmentId: '10000',
+                orderId: 'NON_EXISTENT_ORDER_999', 
+                orderName: '#99999',
+                eventStatusId: 'SHIPMENT_SHIPPED',
+                eventDate: '2026-07-17 10:00:00.000',
+                storeName: 'HotWax',
+                salesChannelDesc: 'Shopify',
+                grandTotal: 100.00,
+                routeSegments: [ [ trackingCode: '1Z999999' ] ],
+                facilityAddress: [ [ originAddress1: '123 Warehouse St' ] ]
+            ]"/>
+
+            <!-- Execute service: should complete without NPE -->
+            <service-call name="co.hotwax.webhook.WebhookServices.process#WebhookDataDocument" in-map="[doc: doc]"/>
+
+            <log level="info" message="test#WebhookNpeSafety PASSED!"/>
+            <set field="finalStatusId" value="TEST_SCN_PASS"/>
+        </actions>
+    </service>
+
+</services>
